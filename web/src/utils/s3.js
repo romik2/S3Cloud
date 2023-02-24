@@ -17,19 +17,17 @@ export async function getList(Prefix) {
 
 export async function uploadFile({Key, Body}) {
     const s3 = getS3Client();
-    const data = await s3.send(new PutObjectCommand({
+    return await s3.send(new PutObjectCommand({
         Bucket: getConnection().Bucket,
         Key,
         Body,
     }));
-    return data; 
 }
 
-export async function deleteFile(Key) {
+export async function deleteFile({Key}) {
     const s3 = getS3Client();
-    const data = await s3.send(new DeleteObjectCommand({
+    return await s3.send(new DeleteObjectCommand({
         Bucket: getConnection().Bucket,
         Key,
     }));
-    return await data;
 }

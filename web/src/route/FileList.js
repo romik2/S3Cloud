@@ -137,7 +137,7 @@ export default function FileList() {
               <TableCell component="th" scope="row">{tableCellName(row)}</TableCell>
               <TableCell align="right">{convertSize(row.Size)}</TableCell>
               <TableCell align="right">
-                <Button variant="text" startIcon={<DeleteIcon />} value={row.Key} onClick={(e) => {deleteFile(e.target.value).then(updateFiles(prefix))}} />
+                <Button variant="text" startIcon={<DeleteIcon />} value={row.Key} onClick={(e) => {deleteFile({Key: `/${e.target.value}`}).then(updateFiles(prefix))}} />
               </TableCell>
             </TableRow>
           ))}
