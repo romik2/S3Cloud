@@ -5,7 +5,7 @@ import {Link} from "react-router-dom";
 const LinkStyle = {
     margin: "0px",
     color: "rgb(25, 118, 210)",
-    "text-decoration": "none",
+    textDecoration: "none",
 };
 
 export default function Menu() {

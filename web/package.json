@@ -4,8 +4,10 @@
   "private": true,
   "dependencies": {
     "@aws-sdk/client-s3": "^3.272.0",
+    "@dropzone-ui/react": "^6.7.20",
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
+    "@mui/icons-material": "^5.11.9",
     "@mui/material": "^5.11.10",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",

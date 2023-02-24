@@ -12,7 +12,6 @@ function App() {
           <Menu/>
           <Routes>
               <Route path="/" element={<Home/>} />
-              {/* <Route path="/files/:prefix" element={<FileList/>} /> */}
               <Route path="/files" element={<FileList/>} />
               <Route path="*" element={<Home/>} />
           </Routes>

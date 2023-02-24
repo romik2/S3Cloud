@@ -16,16 +16,17 @@ function Login() {
     const login = async () => {
         try {
             window.localStorage.setItem('connection', JSON.stringify({
-                region: region,
+                region: region, 
                 endpoint: url,
                 credentials: {
                     accessKeyId: accessKey,
                     secretAccessKey: secretAccessKey,
                 },
-                Bucket: bucket
+                Bucket: bucket,
             }));
             const s3Client = new S3Client(JSON.parse(window.localStorage.getItem('connection')));
             await s3Client.send(new ListObjectsCommand(JSON.parse(window.localStorage.getItem('connection'))));
+
             window.location.reload(false);
         } catch (error) {
             window.localStorage.removeItem('connection');
