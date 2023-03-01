@@ -1,4 +1,4 @@
-import { S3Client, ListObjectsCommand, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, ListObjectsCommand, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 
 export function getConnection() {
     return JSON.parse(window.localStorage.getItem('connection'));
@@ -30,4 +30,19 @@ export async function deleteFile({Key}) {
         Bucket: getConnection().Bucket,
         Key,
     }));
+}
+
+export async function downloadFile({Key}) {
+    const s3 = getS3Client();
+    let data = await s3.send(new GetObjectCommand({
+        Bucket: getConnection().Bucket,
+        Key,
+    }));
+    data = new Blob([await data.Body.transformToString()], {type: 'application/pdf'});
+    console.log(data);
+    let csvURL = await window.URL.createObjectURL(data);
+    let tempLink = await document.createElement('a');
+    tempLink.href = await csvURL;
+    tempLink.setAttribute('download', 'dsadas.pdf');
+    tempLink.click();
 }

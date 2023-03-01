@@ -9,9 +9,11 @@ import Button from '@mui/material/Button';
 import FolderIcon from '@mui/icons-material/Folder';
 import DescriptionIcon from '@mui/icons-material/Description';
 import DeleteIcon from '@mui/icons-material/Delete';
+import DownloadIcon from '@mui/icons-material/Download';
 import { useEffect, useState } from 'react';
 import UploadFile from '../component/UploadFile';
-import { getList, deleteFile } from '../utils/s3.js';
+import { getList, deleteFile, downloadFile } from '../utils/s3.js';
+import MenuFileList from '../component/MenuFileList';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 
@@ -107,7 +109,7 @@ export default function FileList() {
 
   return (
     <>
-    <Button onClick={() => setOpen(true)}>Загрзуить файл</Button>
+    <MenuFileList openModalFile={() => setOpen(true)}/>
     <Modal
       open={open}
       onClose={() => setOpen(false)}
@@ -135,9 +137,16 @@ export default function FileList() {
               sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
             >
               <TableCell component="th" scope="row">{tableCellName(row)}</TableCell>
-              <TableCell align="right">{convertSize(row.Size)}</TableCell>
               <TableCell align="right">
-                <Button variant="text" startIcon={<DeleteIcon />} value={row.Key} onClick={(e) => {deleteFile({Key: `/${e.target.value}`}).then(updateFiles(prefix))}} />
+              {row.Key !== prefix ? convertSize(row.Size) : ""}
+              </TableCell>
+              <TableCell align="right">
+                {row.Key !== prefix ?
+                <>
+                  <Button variant="text" startIcon={<DownloadIcon />} value={`/${row.Key}`} onClick={(e) => {downloadFile({Key: e.currentTarget.value}).then(updateFiles(prefix))}} />
+                  <Button variant="text" startIcon={<DeleteIcon />} value={`/${row.Key}`} onClick={(e) => {deleteFile({Key: e.currentTarget.value}).then(updateFiles(prefix))}} />
+                </>
+                : ""}
               </TableCell>
             </TableRow>
           ))}

@@ -44,7 +44,7 @@ function Login() {
                     <TextField id="url" value={url} onChange={(event) => {setUrl(event.target.value)}} label="URL" variant="outlined" size="small" />
                     <TextField id="rgion" value={region} onChange={(event) => {setRegion(event.target.value)}} label="Регион" variant="outlined" size="small" />
                     <TextField id="accessKey" value={accessKey} onChange={(event) => {setAccessKey(event.target.value)}} label="Access key" variant="outlined" size="small" />
-                    <TextField id="secretAccessKey" value={secretAccessKey} onChange={(event) => {setSecretAccessKey(event.target.value)}} label="Secret access key" variant="outlined" size="small" />
+                    <TextField id="secretAccessKey" type="password" value={secretAccessKey} onChange={(event) => {setSecretAccessKey(event.target.value)}} label="Secret access key" variant="outlined" size="small" />
                     <TextField id="bucket" value={bucket} onChange={(event) => {setBucket(event.target.value)}} label="Bucket" variant="outlined" size="small" />
                     <Button variant="contained" onClick={login}>Войти</Button>
                 </Stack>
