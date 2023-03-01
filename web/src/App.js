@@ -1,5 +1,5 @@
 import FileList from './route/FileList';
-import Menu from './component/Menu';
+import HeaderMenu from './component/HeaderMenu';
 import Home from './route/Home';
 import Login from './route/Login';
 import { BrowserRouter as Router, Route , Routes } from "react-router-dom";
@@ -9,7 +9,7 @@ function App() {
     return (
       <>
         <Router>
-          <Menu/>
+          <HeaderMenu/>
           <Routes>
               <Route path="/" element={<Home/>} />
               <Route path="/files" element={<FileList/>} />

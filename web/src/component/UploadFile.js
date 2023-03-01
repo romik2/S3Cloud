@@ -19,7 +19,7 @@ export default function UploadFile({prefix, closeModal}) {
     }
 
     return (
-        <Dropzone onChange={updateFiles} view="grid" value={files}>
+        <Dropzone onChange={updateFiles} view="grid" maxFiles={5} maxFileSize={200000} value={files}>
         {files.map((file) => (
             <div key={file.name}>
                 <FileItem {...file} preview />
