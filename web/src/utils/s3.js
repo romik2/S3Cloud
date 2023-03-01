@@ -38,11 +38,10 @@ export async function downloadFile({Key}) {
         Bucket: getConnection().Bucket,
         Key,
     }));
-    data = new Blob([await data.Body.transformToString()], {type: 'application/pdf'});
-    console.log(data);
+    data = new Blob([await data.Body.transformToByteArray()]);
     let csvURL = await window.URL.createObjectURL(data);
     let tempLink = await document.createElement('a');
     tempLink.href = await csvURL;
-    tempLink.setAttribute('download', 'dsadas.pdf');
+    tempLink.setAttribute('download', Key.split('/').at(-1));
     tempLink.click();
 }

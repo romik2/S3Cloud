@@ -11,17 +11,17 @@ export default function UploadFile({prefix, closeModal}) {
     };
 
     const uploadFiles = async (files) => {
-        await files.forEach(file => {
-            uploadFile({Body: file.file, Key: `${prefix}${file.file.name}`});
+        await files.forEach(async (file) => {
+            await uploadFile({Body: file.file, Key: `${prefix}${file.file.name}`});
         });
-        setFiles([]);
+        await setFiles([]);
         await closeModal();
     }
 
     return (
         <Dropzone onChange={updateFiles} view="grid" maxFiles={5} maxFileSize={200000} value={files}>
         {files.map((file) => (
-            <div key={file.name}>
+            <div key={file.file.name}>
                 <FileItem {...file} preview />
             </div>
         ))}
