@@ -12,6 +12,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 import { useEffect, useState } from 'react';
 import UploadFile from '../component/UploadFile';
+import AlertText from '../component/AlertText';
+import CustomBreadcrumbs from '../component/CustomBreadcrumbs';
 import { getList, deleteFile, downloadFile } from '../utils/s3.js';
 import MenuFileList from '../component/MenuFileList';
 import Modal from '@mui/material/Modal';
@@ -32,8 +34,12 @@ const style = {
 
 export default function FileList() {
   const [files, setFiles] = useState([]);
+  const [breadcrumbs, setBreadcrumbs] = useState([]);
   const [prefix, setPrefix] = useState('');
   const [open, setOpen] = useState(false);
+  const [alert, setAlert] = useState(false);
+  const [text, setText] = useState('');
+  const [severity, setSeverity] = useState('success');
 
   const convertSize = (byte) => {
     if (Math.trunc(byte / 1024 / 1024 / 1024 / 1024 / 1024 / 1024 / 1024 / 1024)) {
@@ -64,16 +70,9 @@ export default function FileList() {
   }
 
   const tableCellName = (row) => {
-    if (row.Key === prefix) {
-      return (
-        <Button variant="text" sx={{ textTransform: 'none' }} startIcon={<FolderIcon />} onClick={(e) => {updateFiles('');}}>
-            ...
-        </Button>
-      )
-    }
     if (row.Folder) {
       return (
-        <Button variant="text" sx={{ textTransform: 'none' }} value={row.Key} startIcon={<FolderIcon />} onClick={(e) => {updateFiles(e.target.value);}}>
+        <Button variant="text" sx={{ textTransform: 'none' }} value={row.Key} startIcon={<FolderIcon />} onClick={(e) => {updateFiles(e.currentTarget.value);}}>
             {prefix ? row.Key.slice(0, -1).split(prefix)[1] : row.Key.slice(0, -1)}
         </Button>
       )
@@ -86,21 +85,69 @@ export default function FileList() {
   }
 
   const updateFiles = async (prefix) => {
-    const pathCount = await prefix.split('/').length;
-    let data = await getList(prefix);
-    let result = [];
-    data.forEach((e) => {
-      let split = e.Key.split('/');
-      if (split.length === pathCount || (split.length === pathCount + 1 && split[pathCount] === '')) {
-        result.push({
-          Key: e.Key,
-          Size: e.Size,
-          Folder: split[pathCount] === ''
-        });
-      }
-    });
-    setFiles(await result);
-    setPrefix(prefix);
+    try {
+      const pathCount = await prefix.split('/').length;
+      let data = await getList(prefix);
+      let result = [];
+      data.forEach((e) => {
+        if (e.Key === prefix) {
+          return;
+        }
+        let split = e.Key.split('/');
+        if (split.length === pathCount || (split.length === pathCount + 1 && split[pathCount] === '')) {
+          result.push({
+            Key: e.Key,
+            Size: e.Size,
+            Folder: split[pathCount] === ''
+          });
+        }
+      });
+      setFiles(await result);
+      setPrefix(prefix);
+      setBreadcrumbs((`Домашняя папка/${prefix}`).slice(0, -1).split('/'));
+    } catch (error) {
+        setSeverity('error');
+        setText('Произошла ошибка! Попробуйте позже.');
+        setAlert(true);
+    }
+  }
+
+  const downloadFileClick = async (e) => {
+    try {
+      await downloadFile({Key: e.currentTarget.value});
+    } catch (error) {
+      setSeverity('error');
+      setText('Произошла ошибка! Попробуйте позже.');
+      setAlert(true);
+    }
+  }
+
+  const deleteFileClick = async (e) => {
+    try {
+      await deleteFile({Key: e.currentTarget.value});
+      await updateFiles(prefix);
+      setSeverity('success');
+      setText('Файл успешно удалён');
+      setAlert(true);
+    } catch (error) {
+      setSeverity('error');
+      setText('Произошла ошибка! Попробуйте позже.');
+      setAlert(true);
+    }
+  }
+
+  const uploadFileClose = async (e) => {
+    try {
+      await setOpen(false);
+      await updateFiles(prefix);
+      setSeverity('success');
+      setText('Файл(ы) успешно загружены');
+      setAlert(true);
+    } catch (error) {
+      setSeverity('error');
+      setText('Произошла ошибка! Попробуйте позже.');
+      setAlert(true);
+    }
   }
 
   useEffect(() => {
@@ -109,6 +156,7 @@ export default function FileList() {
 
   return (
     <>
+    <AlertText open={alert} handleClose={() => setAlert(false)} textAlert={text} severity={severity}/>
     <MenuFileList openModalFile={() => setOpen(true)}/>
     <Modal
       open={open}
@@ -117,10 +165,10 @@ export default function FileList() {
       aria-describedby="modal-modal-description"
     >
       <Box sx={{ ...style, width: 400 }}>
-        <UploadFile prefix={prefix} closeModal={() => {setOpen(false); updateFiles(prefix);}} />
+        <UploadFile prefix={prefix} closeModal={uploadFileClose} />
       </Box>
     </Modal>
-
+    <CustomBreadcrumbs breadcrumbs={breadcrumbs} handleClick={(e) => updateFiles(e.target.attributes.value.value)}/>
     <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
         <TableHead>
@@ -141,10 +189,10 @@ export default function FileList() {
               {row.Key !== prefix ? convertSize(row.Size) : ""}
               </TableCell>
               <TableCell align="right">
-                {row.Key !== prefix ?
+                {row.Key !== prefix && !row.Folder ?
                 <>
-                  <Button variant="text" startIcon={<DownloadIcon />} value={`/${row.Key}`} onClick={(e) => {downloadFile({Key: e.currentTarget.value}).then(updateFiles(prefix))}} />
-                  <Button variant="text" startIcon={<DeleteIcon />} value={`/${row.Key}`} onClick={(e) => {deleteFile({Key: e.currentTarget.value}).then(updateFiles(prefix))}} />
+                  <Button variant="text" startIcon={<DownloadIcon />} value={`/${row.Key}`} onClick={downloadFileClick} />
+                  <Button variant="text" startIcon={<DeleteIcon />} value={`/${row.Key}`} onClick={deleteFileClick} />
                 </>
                 : ""}
               </TableCell>
