@@ -6,20 +6,39 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 export default function CustomBreadcrumbs({breadcrumbs, handleClick}) {
     let breadcrumbsArray = [];
+    let breadcrumbsStart = breadcrumbs.shift();
     let breadcrumbsEnd = breadcrumbs.pop();
+
+    if (breadcrumbsEnd) {
+      breadcrumbsArray.push(
+        <Link underline="hover" key="home" color="inherit" value="" onClick={handleClick}>
+            {breadcrumbsStart}
+        </Link>
+      );
+    } else {
+      breadcrumbsArray.push(
+        <Typography key="end" color="text.primary">
+            {breadcrumbsStart}
+        </Typography>
+      );
+    }
+
     breadcrumbs.forEach((breadcrumb, key) => {
-        breadcrumbsArray.push(
-        <Link underline="hover" key={key} color="inherit" value={breadcrumb} onClick={(e) => handleClick(e)}>
+      breadcrumbsArray.push(
+        <Link underline="hover" key={key} color="inherit" value={breadcrumb} onClick={handleClick}>
             {breadcrumb}
         </Link>
-        );
+      );
     });
-    breadcrumbsArray.push(
+
+    if (breadcrumbsEnd) {
+      breadcrumbsArray.push(
         <Typography key="end" color="text.primary">
             {breadcrumbsEnd}
         </Typography>
-    );
-  
+      );
+    }
+
     return (
       <Stack spacing={2}>
         <Breadcrumbs

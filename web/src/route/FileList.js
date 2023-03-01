@@ -70,9 +70,6 @@ export default function FileList() {
   }
 
   const tableCellName = (row) => {
-    if (row.Key === prefix) {
-      return ;
-    }
     if (row.Folder) {
       return (
         <Button variant="text" sx={{ textTransform: 'none' }} value={row.Key} startIcon={<FolderIcon />} onClick={(e) => {updateFiles(e.currentTarget.value);}}>
@@ -93,6 +90,9 @@ export default function FileList() {
       let data = await getList(prefix);
       let result = [];
       data.forEach((e) => {
+        if (e.Key === prefix) {
+          return;
+        }
         let split = e.Key.split('/');
         if (split.length === pathCount || (split.length === pathCount + 1 && split[pathCount] === '')) {
           result.push({
@@ -168,7 +168,7 @@ export default function FileList() {
         <UploadFile prefix={prefix} closeModal={uploadFileClose} />
       </Box>
     </Modal>
-    <CustomBreadcrumbs breadcrumbs={breadcrumbs} handleClick={(e) => {console.log(e.currentTarget.value)}}/>
+    <CustomBreadcrumbs breadcrumbs={breadcrumbs} handleClick={(e) => updateFiles(e.target.attributes.value.value)}/>
     <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
         <TableHead>
