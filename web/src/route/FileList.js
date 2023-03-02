@@ -11,7 +11,7 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 import { useEffect, useState } from 'react';
-import UploadFile from '../component/UploadFile';
+import UploadFile from '../modal/UploadFile';
 import AlertText from '../component/AlertText';
 import CustomBreadcrumbs from '../component/CustomBreadcrumbs';
 import { getList, deleteFile, downloadFile } from '../utils/s3.js';
@@ -34,6 +34,7 @@ const style = {
 
 export default function FileList() {
   const [files, setFiles] = useState([]);
+  const [uploadFile, setUploadFile] = useState([]);
   const [breadcrumbs, setBreadcrumbs] = useState([]);
   const [prefix, setPrefix] = useState('');
   const [open, setOpen] = useState(false);
@@ -165,7 +166,7 @@ export default function FileList() {
       aria-describedby="modal-modal-description"
     >
       <Box sx={{ ...style, width: 400 }}>
-        <UploadFile prefix={prefix} closeModal={uploadFileClose} />
+        <UploadFile prefix={prefix} closeModal={uploadFileClose} updateUploadFile={(files) => {console.log(files);setUploadFile(files)}}/>
       </Box>
     </Modal>
     <CustomBreadcrumbs breadcrumbs={breadcrumbs} handleClick={(e) => updateFiles(e.target.attributes.value.value)}/>
@@ -179,6 +180,23 @@ export default function FileList() {
           </TableRow>
         </TableHead>
         <TableBody>
+          {uploadFile.map((row) => (
+            <TableRow
+              key={row.Key}
+              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+            >
+              <TableCell component="th" scope="row">
+                <Button variant="text" sx={{ textTransform: 'none' }} value={row.Key} startIcon={<DescriptionIcon />}>
+                    {row.file.name}
+                </Button>
+              </TableCell>
+              <TableCell align="right">
+                {convertSize(row.file.size)}
+              </TableCell>
+              <TableCell align="right">
+              </TableCell>
+            </TableRow>
+          ))}
           {files.map((row) => (
             <TableRow
               key={row.Key}
@@ -186,7 +204,7 @@ export default function FileList() {
             >
               <TableCell component="th" scope="row">{tableCellName(row)}</TableCell>
               <TableCell align="right">
-              {row.Key !== prefix ? convertSize(row.Size) : ""}
+                {row.Key !== prefix ? convertSize(row.Size) : ""}
               </TableCell>
               <TableCell align="right">
                 {row.Key !== prefix && !row.Folder ?

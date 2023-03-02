@@ -17,11 +17,12 @@ export async function getList(Prefix) {
 
 export async function uploadFile({Key, Body}) {
     const s3 = getS3Client();
-    return await s3.send(new PutObjectCommand({
+    const data = await s3.send(new PutObjectCommand({
         Bucket: getConnection().Bucket,
         Key,
         Body,
     }));
+    return await data;
 }
 
 export async function deleteFile({Key}) {
