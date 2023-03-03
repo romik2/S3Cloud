@@ -17,12 +17,17 @@ export async function getList(Prefix) {
 
 export async function uploadFile({Key, Body}) {
     const s3 = getS3Client();
-    const data = await s3.send(new PutObjectCommand({
-        Bucket: getConnection().Bucket,
-        Key,
-        Body,
-    }));
-    return await data;
+    try {
+        const data = await s3.send(new PutObjectCommand({
+            Bucket: getConnection().Bucket,
+            Key,
+            Body,
+        }));
+        return await data;
+    } catch (error) {
+        console.error(error);
+        return 0;
+    }
 }
 
 export async function deleteFile({Key}) {

@@ -12,12 +12,13 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 import { useEffect, useState } from 'react';
 import UploadFile from '../modal/UploadFile';
-import AlertText from '../component/AlertText';
 import CustomBreadcrumbs from '../component/CustomBreadcrumbs';
 import { getList, deleteFile, downloadFile } from '../utils/s3.js';
 import MenuFileList from '../component/MenuFileList';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
+import ConvertSize from '../utils/ConvertSize';
+import CircularProgress from '@mui/material/CircularProgress';
 
 const style = {
   position: 'absolute',
@@ -32,43 +33,12 @@ const style = {
   pb: 3,
 };
 
-export default function FileList() {
+export default function FileList({sendNotfication}) {
   const [files, setFiles] = useState([]);
   const [uploadFile, setUploadFile] = useState([]);
   const [breadcrumbs, setBreadcrumbs] = useState([]);
   const [prefix, setPrefix] = useState('');
   const [open, setOpen] = useState(false);
-  const [alert, setAlert] = useState(false);
-  const [text, setText] = useState('');
-  const [severity, setSeverity] = useState('success');
-
-  const convertSize = (byte) => {
-    if (Math.trunc(byte / 1024 / 1024 / 1024 / 1024 / 1024 / 1024 / 1024 / 1024)) {
-      return `${(byte / 1024 / 1024 / 1024 / 1024 / 1024 / 1024 / 1024 / 1024).toFixed(2)} Йоттабайт`
-    }
-    if (Math.trunc(byte / 1024 / 1024 / 1024 / 1024 / 1024 / 1024 / 1024)) {
-      return `${(byte / 1024 / 1024 / 1024 / 1024 / 1024 / 1024 / 1024).toFixed(2)} Зеттабайт`
-    }
-    if (Math.trunc(byte / 1024 / 1024 / 1024 / 1024 / 1024 / 1024)) {
-      return `${(byte / 1024 / 1024 / 1024 / 1024 / 1024 / 1024).toFixed(2)} Эксабайт`
-    }
-    if (Math.trunc(byte / 1024 / 1024 / 1024 / 1024 / 1024)) {
-      return `${(byte / 1024 / 1024 / 1024 / 1024 / 1024).toFixed(2)} Петабайт`
-    }
-    if (Math.trunc(byte / 1024 / 1024 / 1024 / 1024)) {
-      return `${(byte / 1024 / 1024 / 1024 / 1024).toFixed(2)} Терабайт`
-    }
-    if (Math.trunc(byte / 1024 / 1024 / 1024)) {
-      return `${(byte / 1024 / 1024 / 1024).toFixed(2)} Гигабайт`
-    }
-    if (Math.trunc(byte / 1024 / 1024)) {
-      return `${(byte / 1024 / 1024).toFixed(2)} Мегабит`
-    }
-    if (Math.trunc(byte / 1024)) {
-      return `${(byte / 1024).toFixed(2)} Килобайт`
-    }
-    return `${byte} байт`;
-  }
 
   const tableCellName = (row) => {
     if (row.Folder) {
@@ -86,40 +56,32 @@ export default function FileList() {
   }
 
   const updateFiles = async (prefix) => {
-    try {
-      const pathCount = await prefix.split('/').length;
-      let data = await getList(prefix);
-      let result = [];
-      data.forEach((e) => {
-        if (e.Key === prefix) {
-          return;
-        }
-        let split = e.Key.split('/');
-        if (split.length === pathCount || (split.length === pathCount + 1 && split[pathCount] === '')) {
-          result.push({
-            Key: e.Key,
-            Size: e.Size,
-            Folder: split[pathCount] === ''
-          });
-        }
-      });
-      setFiles(await result);
-      setPrefix(prefix);
-      setBreadcrumbs((`Домашняя папка/${prefix}`).slice(0, -1).split('/'));
-    } catch (error) {
-        setSeverity('error');
-        setText('Произошла ошибка! Попробуйте позже.');
-        setAlert(true);
-    }
+    const pathCount = await prefix.split('/').length;
+    let data = await getList(prefix);
+    let result = [];
+    data.forEach((e) => {
+      if (e.Key === prefix) {
+        return;
+      }
+      let split = e.Key.split('/');
+      if (split.length === pathCount || (split.length === pathCount + 1 && split[pathCount] === '')) {
+        result.push({
+          Key: e.Key,
+          Size: e.Size,
+          Folder: split[pathCount] === ''
+        });
+      }
+    });
+    setFiles(await result);
+    setPrefix(prefix);
+    setBreadcrumbs((`Домашняя папка/${prefix}`).slice(0, -1).split('/'));
   }
 
   const downloadFileClick = async (e) => {
     try {
       await downloadFile({Key: e.currentTarget.value});
     } catch (error) {
-      setSeverity('error');
-      setText('Произошла ошибка! Попробуйте позже.');
-      setAlert(true);
+      sendNotfication({severity: 'error', text: 'Произошла ошибка! Попробуйте позже.'});
     }
   }
 
@@ -127,27 +89,9 @@ export default function FileList() {
     try {
       await deleteFile({Key: e.currentTarget.value});
       await updateFiles(prefix);
-      setSeverity('success');
-      setText('Файл успешно удалён');
-      setAlert(true);
+      sendNotfication({severity: 'success', text: 'Файл успешно удалён'});
     } catch (error) {
-      setSeverity('error');
-      setText('Произошла ошибка! Попробуйте позже.');
-      setAlert(true);
-    }
-  }
-
-  const uploadFileClose = async (e) => {
-    try {
-      await setOpen(false);
-      await updateFiles(prefix);
-      setSeverity('success');
-      setText('Файл(ы) успешно загружены');
-      setAlert(true);
-    } catch (error) {
-      setSeverity('error');
-      setText('Произошла ошибка! Попробуйте позже.');
-      setAlert(true);
+      sendNotfication({severity: 'error', text: 'Произошла ошибка! Попробуйте позже.'});
     }
   }
 
@@ -157,7 +101,6 @@ export default function FileList() {
 
   return (
     <>
-    <AlertText open={alert} handleClose={() => setAlert(false)} textAlert={text} severity={severity}/>
     <MenuFileList openModalFile={() => setOpen(true)}/>
     <Modal
       open={open}
@@ -165,11 +108,15 @@ export default function FileList() {
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
     >
-      <Box sx={{ ...style, width: 400 }}>
-        <UploadFile prefix={prefix} closeModal={uploadFileClose} updateUploadFile={(files) => {console.log(files);setUploadFile(files)}}/>
+      <Box sx={{ ...style }}>
+        <UploadFile
+          prefix={prefix}
+          closeModal={() => {setOpen(false)}}
+          updatedFiles={() => updateFiles(prefix)}
+          updateUploadFile={(files) => {setUploadFile(files)}}/>
       </Box>
     </Modal>
-    <CustomBreadcrumbs breadcrumbs={breadcrumbs} handleClick={(e) => updateFiles(e.target.attributes.value.value)}/>
+    <CustomBreadcrumbs breadcrumbs={breadcrumbs} handleClick={(e) => updateFiles(e.currentTarget.attributes.value.value)}/>
     <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
         <TableHead>
@@ -186,12 +133,12 @@ export default function FileList() {
               sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
             >
               <TableCell component="th" scope="row">
-                <Button variant="text" sx={{ textTransform: 'none' }} value={row.Key} startIcon={<DescriptionIcon />}>
+                <Button variant="text" sx={{ textTransform: 'none' }} value={row.Key} startIcon={<CircularProgress />}>
                     {row.file.name}
                 </Button>
               </TableCell>
               <TableCell align="right">
-                {convertSize(row.file.size)}
+                {ConvertSize(row.file.size)}
               </TableCell>
               <TableCell align="right">
               </TableCell>
@@ -204,7 +151,7 @@ export default function FileList() {
             >
               <TableCell component="th" scope="row">{tableCellName(row)}</TableCell>
               <TableCell align="right">
-                {row.Key !== prefix ? convertSize(row.Size) : ""}
+                {row.Key !== prefix ? ConvertSize(row.Size) : ""}
               </TableCell>
               <TableCell align="right">
                 {row.Key !== prefix && !row.Folder ?
